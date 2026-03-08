@@ -15,7 +15,7 @@ driver_info = {
     "NOR": {"name": "Lando Norris", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LANNOR01_Lando_Norris/lannor01.png"},
     "PIA": {"name": "Oscar Piastri", "img": "https://www.formula1.com/content/dam/fom-website/drivers/O/OSCPIA01_Oscar_Piastri/oscpia01.png"},
     "VER": {"name": "Max Verstappen", "img": "https://www.formula1.com/content/dam/fom-website/drivers/M/MAXVER01_Max_Verstappen/maxver01.png"},
-    "LIN": {"name": "Arvid Lindblad", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/ARVLIN01_Arvid_Lindblad/arvlin01.png"},
+    "LIN": {"name": "Arvid Lindblad", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/racingbulls/arvlin01/2026racingbullsarvlin01right.webp"},
     "BOR": {"name": "Gabriel Bortoleto", "img": "https://www.formula1.com/content/dam/fom-website/drivers/G/GABBOR01_Gabriel_Bortoleto/gabbor01.png"},
     "HAD": {"name": "Isack Hadjar", "img": "https://www.formula1.com/content/dam/fom-website/drivers/I/ISAHAD01_Isack_Hadjar/isahad01.png"},
     "SAI": {"name": "Carlos Sainz", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png"},
@@ -84,3 +84,4 @@ with tab2:
             row_col1, row_col2 = st.columns([0.5, 4])
             row_col1.image(d["img"], width=50)
             row_col2.write(f"**{d['name']}**")
+
