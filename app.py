@@ -153,7 +153,7 @@ with tab2:
     col1, col2 = st.columns(2)
     for name, lineup, col in [("Steven", steven_lineup, col1), ("Vanessa", vanessa_lineup, col2)]:
         with col:
-            st.subheader(f"{name}'s Drivers")
+            st.subheader(f"{name}'s Lineup")
             for code in lineup:
                 d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
                 c1, c2 = st.columns([0.3, 5])
@@ -163,3 +163,4 @@ with tab2:
 with tab3:
     st.markdown(generate_html_spreadsheet(steven_lineup, points_dict, all_sessions), unsafe_allow_html=True)
     st.markdown(generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions), unsafe_allow_html=True)
+
