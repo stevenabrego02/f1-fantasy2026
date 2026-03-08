@@ -10,55 +10,30 @@ st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 # --- Custom CSS for HTML Tables ---
 st.markdown("""
 <style>
-    .f1-table-container { 
-        overflow-x: auto; 
-        max-width: 100%; 
-        margin-bottom: 2rem; 
-    }
-    .f1-table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        font-family: sans-serif; 
-        font-size: 13px; 
-    }
-    .f1-table td { 
-        border: 1px solid #444; 
-        padding: 8px; 
-        text-align: center; 
-        white-space: nowrap; 
-    }
+    .f1-table-container { overflow-x: auto; max-width: 100%; margin-bottom: 2rem; }
+    .f1-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; }
+    .f1-table td { border: 1px solid #444; padding: 8px; text-align: center; white-space: nowrap; }
     
-    /* Vertical Column Headers */
-    .f1-table th { 
-        border: 1px solid #444; 
-        padding: 5px; 
-        text-align: center; 
-    }
+    /* Vertical Column Headers - Updated for Visibility */
     .f1-table th:not(:first-child) {
         writing-mode: vertical-rl;
         transform: rotate(180deg);
-        height: 200px; /* Increased height to prevent text cut-off */
-        white-space: nowrap;
+        height: 250px; 
+        white-space: normal;
         vertical-align: middle;
+        padding: 10px 5px;
         line-height: 1.2;
     }
 
-    /* Sticky First Column */
     .f1-table td:first-child, .f1-table th:first-child { 
-        text-align: left; 
-        position: sticky; 
-        left: 0; 
-        background-color: #0e1117; 
-        z-index: 2; 
-        min-width: 160px; 
+        text-align: left; position: sticky; left: 0; 
+        background-color: #0e1117; z-index: 2; min-width: 180px; 
     }
     
-    /* Bold Bottom Row */
     .f1-table tr:last-child { font-weight: bold; background-color: #1e2530; }
 
-    /* Responsive Mobile Adjustments */
     @media (max-width: 600px) {
-        .f1-table th:not(:first-child) { height: 130px; font-size: 10px; }
+        .f1-table th:not(:first-child) { height: 150px; font-size: 10px; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -87,8 +62,8 @@ driver_info = {
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
 vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "HUL"]
 
-# --- Data Fetching ---
-@st.cache_data(ttl=3600)
+# --- Data Fetching (Updated to 60s for near-instant updates) ---
+@st.cache_data(ttl=60)
 def fetch_season_data():
     schedule = fastf1.get_event_schedule(2026)
     events = schedule[~schedule['EventFormat'].str.contains('testing', case=False, na=False)]
@@ -127,7 +102,7 @@ def generate_html_spreadsheet(lineup, points_dict, all_sessions):
     rows = []
     for code in lineup:
         d = driver_info.get(code, {"name": code, "img": ""})
-        driver_cell = f"<div style='display:flex; align-items:center;'><img src='{d['img']}' width='35' style='margin-right:10px; border-radius:50%;'> <span>{d['name']}</span></div>"
+        driver_cell = f"<div style='display:flex; align-items:center;'><img src='{d['img']}' width='45' style='margin-right:12px; border-radius:50%;'> <span>{d['name']}</span></div>"
         row = {"Driver": driver_cell}
         total_pts = 0
         for session in all_sessions[:-1]:
@@ -169,8 +144,8 @@ with tab2:
             st.subheader(f"{name}'s Drivers")
             for code in lineup:
                 d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
-                c1, c2 = st.columns([0.2, 5])
-                c1.image(d["img"], width=30)
+                c1, c2 = st.columns([0.3, 5])
+                c1.image(d["img"], width=45)
                 c2.markdown(f"**{d['name']}**")
 
 with tab3:
