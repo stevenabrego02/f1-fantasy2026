@@ -21,7 +21,7 @@ driver_info = {
     "SAI": {"name": "Carlos Sainz", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png"},
     "GAS": {"name": "Pierre Gasly", "img": "https://www.formula1.com/content/dam/fom-website/drivers/P/PIEGAS01_Pierre_Gasly/piegas01.png"},
     "BEA": {"name": "Oliver Bearman", "img": "https://www.formula1.com/content/dam/fom-website/drivers/O/OLIBEA01_Oliver_Bearman/olibea01.png"},
-    "ANT": {"name": "Kimi Antonelli", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/KINANT01_Kimi_Antonelli/kinant01.png"},
+    "ANT": {"name": "Kimi Antonelli", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/mercedes/andant01/2026mercedesandant01right.webp"},
     "ALB": {"name": "Alex Albon", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/ALEALB01_Alexander_Albon/alealb01.png"},
     "LAW": {"name": "Liam Lawson", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LIALAW01_Liam_Lawson/lialaw01.png"},
 }
@@ -84,5 +84,6 @@ with tab2:
             row_col1, row_col2 = st.columns([0.5, 4])
             row_col1.image(d["img"], width=50)
             row_col2.write(f"**{d['name']}**")
+
 
 
