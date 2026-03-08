@@ -12,8 +12,33 @@ st.markdown("""
 <style>
     .f1-table-container { overflow-x: auto; margin-bottom: 2rem; }
     .f1-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; }
-    .f1-table th, .f1-table td { border: 1px solid #444; padding: 8px; text-align: center; white-space: nowrap; }
-    .f1-table td:first-child, .f1-table th:first-child { text-align: left; position: sticky; left: 0; background-color: #0e1117; z-index: 1; min-width: 160px; }
+    .f1-table td { border: 1px solid #444; padding: 8px; text-align: center; white-space: nowrap; }
+    
+    /* Vertical Column Headers */
+    .f1-table th { 
+        border: 1px solid #444; 
+        padding: 10px 8px; 
+        text-align: center; 
+        white-space: nowrap;
+    }
+    .f1-table th:not(:first-child) {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        height: 160px; /* Gives enough room for long sprint/race names */
+        vertical-align: bottom;
+    }
+
+    /* Sticky First Column */
+    .f1-table td:first-child, .f1-table th:first-child { 
+        text-align: left; 
+        position: sticky; 
+        left: 0; 
+        background-color: #0e1117; 
+        z-index: 1; 
+        min-width: 160px; 
+    }
+    
+    /* Bold Bottom Row */
     .f1-table tr:last-child { font-weight: bold; background-color: #1e2530; }
 </style>
 """, unsafe_allow_html=True)
@@ -106,7 +131,7 @@ def generate_html_spreadsheet(lineup, points_dict, all_sessions):
     df = pd.DataFrame(rows)
     
     # Calculate bottom row (Grand Prix sums and final Running Sum)
-    total_row = {"Driver": "<b>TOTAL</b>"}
+    total_row = {"Driver": "<b>Total</b>"}
     for col in df.columns[1:]:
         if df[col].replace("", pd.NA).isna().all():
             total_row[col] = "" # Leave blank if no data yet
@@ -138,9 +163,11 @@ with tab1:
     df_chart = pd.DataFrame(history_data)
     
     if not df_chart.empty:
-        df_chart['Steven's Season Points'] = df_chart['Steven'].cumsum()
-        df_chart['Vanessa's Season Points'] = df_chart['Vanessa'].cumsum()
-        fig = px.line(df_chart, x='Race', y=['Steven's Season Points', 'Vanessa's Season Points'], markers=True, title="Cumulative Season Points",
+        # FIXED: Changed single quotes to double quotes to prevent syntax errors
+        df_chart["Steven's Season Points"] = df_chart['Steven'].cumsum()
+        df_chart["Vanessa's Season Points"] = df_chart['Vanessa'].cumsum()
+        
+        fig = px.line(df_chart, x='Race', y=["Steven's Season Points", "Vanessa's Season Points"], markers=True, title="Cumulative Season Points",
                       color_discrete_map={"Steven's Season Points": "red", "Vanessa's Season Points": "blue"})
         fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
@@ -166,4 +193,3 @@ with tab3:
     st.subheader("Vanessa's Breakdown")
     vanessa_html = generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions)
     st.markdown(vanessa_html, unsafe_allow_html=True)
-
