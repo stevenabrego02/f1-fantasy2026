@@ -68,22 +68,24 @@ with tab1:
     else:
         st.warning("No race data available yet.")
 
+# --- Updated snippet for your tab2 logic ---
 with tab2:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("Steven's Drivers")
         for code in steven_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/50"})
-            row_col1, row_col2 = st.columns([0.5, 4])
-            row_col1.image(d["img"], width=50)
-            row_col2.write(f"**{d['name']}**")
+            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
+            # Adjusting the ratio to [0.3, 4] keeps the image compact
+            row_col1, row_col2 = st.columns([0.3, 4]) 
+            row_col1.image(d["img"], width=35) # Reduced from 50 to 35
+            row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
+            
     with col2:
         st.subheader("Vanessa's Drivers")
         for code in vanessa_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/50"})
-            row_col1, row_col2 = st.columns([0.5, 4])
-            row_col1.image(d["img"], width=50)
-            row_col2.write(f"**{d['name']}**")
-
+            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
+            row_col1, row_col2 = st.columns([0.3, 4])
+            row_col1.image(d["img"], width=35) # Reduced from 50 to 35
+            row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
 
 
