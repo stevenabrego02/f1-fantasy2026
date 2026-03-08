@@ -7,7 +7,7 @@ import plotly.express as px
 st.set_page_config(page_title="2026 F1 Fantasy Battle", layout="wide")
 st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 
-# --- Driver Data (Updated with all 16 unique drivers) ---
+# --- Driver Data ---
 driver_info = {
     "HAM": {"name": "Lewis Hamilton", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LEWHAM01_Lewis_Hamilton/lewham01.png"},
     "LEC": {"name": "Charles Leclerc", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png"},
@@ -27,68 +27,56 @@ driver_info = {
     "HUL": {"name": "Nico Hulkenberg", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/audi/nichul01/2026audinichul01right.webp"},
 }
 
-# --- Define Your Lineups ---
+# --- Lineups ---
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
 vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "HUL"]
 
-# --- Function to Get All Points ---
 @st.cache_data(ttl=3600)
 def get_season_points():
     schedule = fastf1.get_event_schedule(2026)
     now = pd.Timestamp.now().tz_localize(None)
     past_events = schedule[(schedule['EventDate'] <= now) & (~schedule['EventFormat'].str.contains('testing', case=False, na=False))]
-    
     history_data = []
     for _, event in past_events.iterrows():
         try:
+            # We assume 'R' for race; you could expand this to include 'S' for sprint
             session = fastf1.get_session(2026, event['EventName'], 'R')
             session.load(telemetry=False, weather=False, messages=False)
             results = session.results[['Abbreviation', 'Points']]
             points_map = dict(zip(results['Abbreviation'], results['Points']))
-            
-            history_data.append({
-                'Race': event['EventName'],
-                'Steven': sum(points_map.get(d, 0) for d in steven_lineup),
-                'Vanessa': sum(points_map.get(d, 0) for d in vanessa_lineup)
-            })
-        except Exception:
-            continue
+            history_data.append({'Race': event['EventName'], 'Steven': sum(points_map.get(d, 0) for d in steven_lineup), 'Vanessa': sum(points_map.get(d, 0) for d in vanessa_lineup)})
+        except: continue
     return pd.DataFrame(history_data)
 
-# --- Tabs for Layout ---
-tab1, tab2 = st.tabs(["📊 Live Standings", "👤 Team Lineups"])
+# --- Tabs ---
+tab1, tab2, tab3 = st.tabs(["📊 Live Standings", "👤 Team Lineups", "📑 Spreadsheet View"])
 
 with tab1:
     df = get_season_points()
     if not df.empty:
         df['Steven Total'] = df['Steven'].cumsum()
         df['Vanessa Total'] = df['Vanessa'].cumsum()
-        st.table(df[['Race', 'Steven Total', 'Vanessa Total']])
-        fig = px.line(df, x='Race', y=['Steven Total', 'Vanessa Total'], markers=True, title="Cumulative Season Points")
+        fig = px.line(df, x='Race', y=['Steven Total', 'Vanessa Total'], markers=True, title="Cumulative Season Points",
+                      color_discrete_map={"Steven Total": "red", "Vanessa Total": "blue"})
+        fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("No race data available yet.")
+    else: st.warning("No data available.")
 
-# --- Updated snippet for your tab2 logic ---
 with tab2:
     col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Steven's Drivers")
-        for code in steven_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
-            # Adjusting the ratio to [0.3, 4] keeps the image compact
-            row_col1, row_col2 = st.columns([0.5, 5]) 
-            row_col1.image(d["img"], width=50) # Reduced from 50 to 35
-            row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
-            
-    with col2:
-        st.subheader("Vanessa's Drivers")
-        for code in vanessa_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
-            row_col1, row_col2 = st.columns([0.5, 5])
-            row_col1.image(d["img"], width=50) # Reduced from 50 to 35
-            row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
+    for name, lineup, col in [("Steven", steven_lineup, col1), ("Vanessa", vanessa_lineup, col2)]:
+        with col:
+            st.subheader(f"{name}'s Drivers")
+            for code in lineup:
+                d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
+                c1, c2 = st.columns([0.3, 5])
+                c1.image(d["img"], width=35)
+                c2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
 
-
-
-
+with tab3:
+    st.subheader("Steven's Driver List")
+    steven_df = pd.DataFrame([driver_info.get(d, {"name": d, "img": ""}) for d in steven_lineup])
+    st.dataframe(steven_df, column_config={"img": st.column_config.ImageColumn("Photo")})
+    st.subheader("Vanessa's Driver List")
+    vanessa_df = pd.DataFrame([driver_info.get(d, {"name": d, "img": ""}) for d in vanessa_lineup])
+    st.dataframe(vanessa_df, column_config={"img": st.column_config.ImageColumn("Photo")})
