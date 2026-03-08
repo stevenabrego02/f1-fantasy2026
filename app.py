@@ -4,17 +4,26 @@ import fastf1
 import plotly.express as px
 
 # --- UI Configuration ---
+st.set_page_config(page_title="2026 F1 Fantasy Battle", layout="wide")
 st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 
-# --- Setup Driver Data ---
-# Add your preferred image URLs here. 
-# Using a dictionary allows you to map abbreviations to their names and photos.
+# --- Driver Data (Updated with all 16 unique drivers) ---
 driver_info = {
-    "HAM": {"name": "Lewis Hamilton", "img": "https://upload.wikimedia.org/wikipedia/commons/1/18/Lewis_Hamilton_2016_Malaysia_2.jpg"},
-    "LEC": {"name": "Charles Leclerc", "img": "https://upload.wikimedia.org/wikipedia/commons/0/05/Charles_Leclerc_2019_Bahrain.jpg"},
-    "RUS": {"name": "George Russell", "img": "https://upload.wikimedia.org/wikipedia/commons/1/18/George_Russell_2022.jpg"},
-    "NOR": {"name": "Lando Norris", "img": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Lando_Norris_2022.jpg"},
-    # Add all other drivers in your 8-driver pools here!
+    "HAM": {"name": "Lewis Hamilton", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LEWHAM01_Lewis_Hamilton/lewham01.png"},
+    "LEC": {"name": "Charles Leclerc", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png"},
+    "RUS": {"name": "George Russell", "img": "https://www.formula1.com/content/dam/fom-website/drivers/G/GEORUS01_George_Russell/georus01.png"},
+    "NOR": {"name": "Lando Norris", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LANNOR01_Lando_Norris/lannor01.png"},
+    "PIA": {"name": "Oscar Piastri", "img": "https://www.formula1.com/content/dam/fom-website/drivers/O/OSCPIA01_Oscar_Piastri/oscpia01.png"},
+    "VER": {"name": "Max Verstappen", "img": "https://www.formula1.com/content/dam/fom-website/drivers/M/MAXVER01_Max_Verstappen/maxver01.png"},
+    "LIN": {"name": "Arvid Lindblad", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/ARVLIN01_Arvid_Lindblad/arvlin01.png"},
+    "BOR": {"name": "Gabriel Bortoleto", "img": "https://www.formula1.com/content/dam/fom-website/drivers/G/GABBOR01_Gabriel_Bortoleto/gabbor01.png"},
+    "HAD": {"name": "Isack Hadjar", "img": "https://www.formula1.com/content/dam/fom-website/drivers/I/ISAHAD01_Isack_Hadjar/isahad01.png"},
+    "SAI": {"name": "Carlos Sainz", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png"},
+    "GAS": {"name": "Pierre Gasly", "img": "https://www.formula1.com/content/dam/fom-website/drivers/P/PIEGAS01_Pierre_Gasly/piegas01.png"},
+    "BEA": {"name": "Oliver Bearman", "img": "https://www.formula1.com/content/dam/fom-website/drivers/O/OLIBEA01_Oliver_Bearman/olibea01.png"},
+    "ANT": {"name": "Kimi Antonelli", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/KINANT01_Kimi_Antonelli/kinant01.png"},
+    "ALB": {"name": "Alex Albon", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/ALEALB01_Alexander_Albon/alealb01.png"},
+    "LAW": {"name": "Liam Lawson", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LIALAW01_Liam_Lawson/lialaw01.png"},
 }
 
 # --- Define Your Lineups ---
@@ -64,15 +73,14 @@ with tab2:
     with col1:
         st.subheader("Steven's Drivers")
         for code in steven_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/150"})
-            row_col1, row_col2 = st.columns([1, 3])
-            row_col1.image(d["img"], width=80)
-            row_col2.write(f"**{d['name']}** ({code})")
+            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/50"})
+            row_col1, row_col2 = st.columns([0.5, 4])
+            row_col1.image(d["img"], width=50)
+            row_col2.write(f"**{d['name']}**")
     with col2:
         st.subheader("Vanessa's Drivers")
         for code in vanessa_lineup:
-            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/150"})
-            row_col1, row_col2 = st.columns([1, 3])
-            row_col1.image(d["img"], width=80)
-            row_col2.write(f"**{d['name']}** ({code})")
-
+            d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/50"})
+            row_col1, row_col2 = st.columns([0.5, 4])
+            row_col1.image(d["img"], width=50)
+            row_col2.write(f"**{d['name']}**")
