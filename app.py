@@ -3,6 +3,10 @@ import pandas as pd
 import fastf1
 import plotly.express as px
 
+# --- UI Configuration ---
+st.set_page_config(page_config="wide")
+st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
+
 # --- Define Your Lineups ---
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
 vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "NOR"]
@@ -12,19 +16,22 @@ vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "NOR"]
 def get_season_points():
     schedule = fastf1.get_event_schedule(2026)
     now = pd.Timestamp.now().tz_localize(None)
-    past_races = schedule[schedule['EventDate'] <= now]
+    
+    # Filter for past races, explicitly excluding testing
+    past_events = schedule[(schedule['EventDate'] <= now) & (~schedule.is_testing())]
     
     history_data = []
     
-    for _, race in past_races.iterrows():
+    for _, event in past_events.iterrows():
         try:
-            session = fastf1.get_session(2026, race['EventName'], 'R')
+            # Load the Race session specifically
+            session = fastf1.get_session(2026, event['EventName'], 'R')
             session.load(telemetry=False, weather=False, messages=False)
             results = session.results[['Abbreviation', 'Points']]
             points_map = dict(zip(results['Abbreviation'], results['Points']))
             
             history_data.append({
-                'Race': race['EventName'],
+                'Race': event['EventName'],
                 'Steven': sum(points_map.get(d, 0) for d in steven_lineup),
                 'Vanessa': sum(points_map.get(d, 0) for d in vanessa_lineup)
             })
@@ -34,16 +41,18 @@ def get_season_points():
     return pd.DataFrame(history_data)
 
 # --- Display Logic ---
-st.title("🏆 2026 F1 Fantasy: Live Tracker")
 df = get_season_points()
 
 if not df.empty:
-    df['Steven_Total'] = df['Steven'].cumsum()
-    df['Vanessa_Total'] = df['Vanessa'].cumsum()
+    # Calculate running totals
+    df['Steven Total'] = df['Steven'].cumsum()
+    df['Vanessa Total'] = df['Vanessa'].cumsum()
     
-    st.table(df)
+    # Display only the requested columns
+    st.table(df[['Race', 'Steven Total', 'Vanessa Total']])
     
-    fig = px.line(df, x='Race', y=['Steven_Total', 'Vanessa_Total'], 
+    # Plotting
+    fig = px.line(df, x='Race', y=['Steven Total', 'Vanessa Total'], 
                   markers=True, title="Cumulative Season Points")
     st.plotly_chart(fig)
 else:
