@@ -4,8 +4,6 @@ import fastf1
 import plotly.express as px
 
 # --- UI Configuration ---
-st.set_page_config(page_title="2026 F1 Fantasy Battle", layout="wide")
-
 st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 
 # --- Setup Driver Data ---
@@ -77,3 +75,4 @@ with tab2:
             row_col1, row_col2 = st.columns([1, 3])
             row_col1.image(d["img"], width=80)
             row_col2.write(f"**{d['name']}** ({code})")
+
