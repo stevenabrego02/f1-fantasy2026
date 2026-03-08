@@ -10,22 +10,37 @@ st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 # --- Custom CSS for HTML Tables ---
 st.markdown("""
 <style>
-    .f1-table-container { overflow-x: auto; margin-bottom: 2rem; }
-    .f1-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px; }
-    .f1-table td { border: 1px solid #444; padding: 8px; text-align: center; white-space: nowrap; }
+    .f1-table-container { 
+        overflow-x: auto; 
+        max-width: 100%; 
+        margin-bottom: 2rem; 
+    }
+    .f1-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-family: sans-serif; 
+        font-size: 13px; 
+    }
+    .f1-table td { 
+        border: 1px solid #444; 
+        padding: 8px; 
+        text-align: center; 
+        white-space: nowrap; 
+    }
     
     /* Vertical Column Headers */
     .f1-table th { 
         border: 1px solid #444; 
-        padding: 10px 8px; 
+        padding: 5px; 
         text-align: center; 
-        white-space: nowrap;
     }
     .f1-table th:not(:first-child) {
         writing-mode: vertical-rl;
         transform: rotate(180deg);
-        height: 160px; /* Gives enough room for long sprint/race names */
-        vertical-align: bottom;
+        height: 200px; /* Increased height to prevent text cut-off */
+        white-space: nowrap;
+        vertical-align: middle;
+        line-height: 1.2;
     }
 
     /* Sticky First Column */
@@ -34,12 +49,17 @@ st.markdown("""
         position: sticky; 
         left: 0; 
         background-color: #0e1117; 
-        z-index: 1; 
+        z-index: 2; 
         min-width: 160px; 
     }
     
     /* Bold Bottom Row */
     .f1-table tr:last-child { font-weight: bold; background-color: #1e2530; }
+
+    /* Responsive Mobile Adjustments */
+    @media (max-width: 600px) {
+        .f1-table th:not(:first-child) { height: 130px; font-size: 10px; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,40 +87,36 @@ driver_info = {
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
 vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "HUL"]
 
-# --- Automated Data Fetching ---
+# --- Data Fetching ---
 @st.cache_data(ttl=3600)
 def fetch_season_data():
     schedule = fastf1.get_event_schedule(2026)
     events = schedule[~schedule['EventFormat'].str.contains('testing', case=False, na=False)]
-    
-    points_dict = {}
-    all_sessions = []
+    points_dict, all_sessions = {}, []
     now = pd.Timestamp.now().tz_localize(None)
     
     for _, event in events.iterrows():
         event_name = event['EventName']
         is_sprint = str(event['EventFormat']).lower() in ['sprint', 'sprint_qualifying', 'sprint_shootout']
         
-        # 1. Fetch Sprint (if applicable)
         if is_sprint:
             sprint_name = f"{event_name} (Sprint)"
             all_sessions.append(sprint_name)
             if event['EventDate'] <= now:
                 try:
-                    session = fastf1.get_session(2026, event_name, 'S')
-                    session.load(telemetry=False, weather=False, messages=False)
-                    res = session.results[['Abbreviation', 'Points']]
+                    s = fastf1.get_session(2026, event_name, 'S')
+                    s.load(telemetry=False, weather=False, messages=False)
+                    res = s.results[['Abbreviation', 'Points']]
                     points_dict[sprint_name] = dict(zip(res['Abbreviation'], res['Points']))
                 except: pass
         
-        # 2. Fetch Race
         race_name = f"{event_name} (Race)"
         all_sessions.append(race_name)
         if event['EventDate'] <= now:
             try:
-                session = fastf1.get_session(2026, event_name, 'R')
-                session.load(telemetry=False, weather=False, messages=False)
-                res = session.results[['Abbreviation', 'Points']]
+                s = fastf1.get_session(2026, event_name, 'R')
+                s.load(telemetry=False, weather=False, messages=False)
+                res = s.results[['Abbreviation', 'Points']]
                 points_dict[race_name] = dict(zip(res['Abbreviation'], res['Points']))
             except: pass
             
@@ -111,68 +127,40 @@ def generate_html_spreadsheet(lineup, points_dict, all_sessions):
     rows = []
     for code in lineup:
         d = driver_info.get(code, {"name": code, "img": ""})
-        # Combine image and name in HTML
         driver_cell = f"<div style='display:flex; align-items:center;'><img src='{d['img']}' width='35' style='margin-right:10px; border-radius:50%;'> <span>{d['name']}</span></div>"
-        
         row = {"Driver": driver_cell}
-        total_points = 0
-        
-        for session_name in all_sessions[:-1]: # Loop through everything except the "Total" column
-            if session_name in points_dict:
-                pts = points_dict[session_name].get(code, 0)
-                row[session_name] = pts
-                total_points += pts
-            else:
-                row[session_name] = "" # Leave blank if race hasn't happened
-                
-        row["Total"] = total_points
+        total_pts = 0
+        for session in all_sessions[:-1]:
+            pts = points_dict.get(session, {}).get(code, 0)
+            row[session] = pts
+            total_pts += pts
+        row["Total"] = total_pts
         rows.append(row)
         
     df = pd.DataFrame(rows)
-    
-    # Calculate bottom row (Grand Prix sums and final Running Sum)
     total_row = {"Driver": "<b>Total</b>"}
     for col in df.columns[1:]:
-        if df[col].replace("", pd.NA).isna().all():
-            total_row[col] = "" # Leave blank if no data yet
-        else:
-            total_row[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).sum()
-            
+        total_row[col] = df[col].sum()
     df = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
-    
-    # Convert to HTML with our custom CSS classes
-    html = df.to_html(escape=False, index=False, classes="f1-table")
-    return f"<div class='f1-table-container'>{html}</div>"
+    return f"<div class='f1-table-container'>{df.to_html(escape=False, index=False, classes='f1-table')}</div>"
 
-
-# --- Load Data ---
+# --- Main App ---
 all_sessions, points_dict = fetch_season_data()
-
-# --- Tabs ---
 tab1, tab2, tab3 = st.tabs(["📊 Live Standings", "👤 Team Lineups", "📑 Spreadsheet View"])
 
 with tab1:
     history_data = []
-    for session_name in all_sessions:
-        if session_name == "Total" or session_name not in points_dict:
-            continue
-        s_pts = sum(points_dict[session_name].get(code, 0) for code in steven_lineup)
-        v_pts = sum(points_dict[session_name].get(code, 0) for code in vanessa_lineup)
-        history_data.append({'Race': session_name, 'Steven': s_pts, 'Vanessa': v_pts})
-        
+    for s in all_sessions:
+        if s == "Total" or s not in points_dict: continue
+        history_data.append({'Race': s, 'Steven': sum(points_dict[s].get(c, 0) for c in steven_lineup), 
+                             'Vanessa': sum(points_dict[s].get(c, 0) for c in vanessa_lineup)})
     df_chart = pd.DataFrame(history_data)
-    
     if not df_chart.empty:
-        # FIXED: Changed single quotes to double quotes to prevent syntax errors
         df_chart["Steven's Season Points"] = df_chart['Steven'].cumsum()
         df_chart["Vanessa's Season Points"] = df_chart['Vanessa'].cumsum()
-        
-        fig = px.line(df_chart, x='Race', y=["Steven's Season Points", "Vanessa's Season Points"], markers=True, title="Cumulative Season Points",
-                      color_discrete_map={"Steven's Season Points": "red", "Vanessa's Season Points": "blue"})
+        fig = px.line(df_chart, x='Race', y=["Steven's Season Points", "Vanessa's Season Points"], markers=True, title="Cumulative Season Points")
         fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
-    else: 
-        st.warning("No race data available yet.")
 
 with tab2:
     col1, col2 = st.columns(2)
@@ -181,15 +169,10 @@ with tab2:
             st.subheader(f"{name}'s Drivers")
             for code in lineup:
                 d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
-                c1, c2 = st.columns([0.3, 5])
-                c1.image(d["img"], width=35)
-                c2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
+                c1, c2 = st.columns([0.2, 5])
+                c1.image(d["img"], width=30)
+                c2.markdown(f"**{d['name']}**")
 
 with tab3:
-    st.subheader("Steven's Breakdown")
-    steven_html = generate_html_spreadsheet(steven_lineup, points_dict, all_sessions)
-    st.markdown(steven_html, unsafe_allow_html=True)
-    
-    st.subheader("Vanessa's Breakdown")
-    vanessa_html = generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions)
-    st.markdown(vanessa_html, unsafe_allow_html=True)
+    st.markdown(generate_html_spreadsheet(steven_lineup, points_dict, all_sessions), unsafe_allow_html=True)
+    st.markdown(generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions), unsafe_allow_html=True)
