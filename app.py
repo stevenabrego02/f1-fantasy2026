@@ -3,8 +3,12 @@ import pandas as pd
 import fastf1
 import plotly.express as px
 
-# --- UI Configuration ---
-st.set_page_config(page_config="wide")
+# --- UI Configuration (Corrected) ---
+st.set_page_config(
+    page_title="2026 F1 Fantasy Battle", 
+    layout="wide"
+)
+
 st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 
 # --- Define Your Lineups ---
@@ -17,8 +21,8 @@ def get_season_points():
     schedule = fastf1.get_event_schedule(2026)
     now = pd.Timestamp.now().tz_localize(None)
     
-    # Filter for past races, explicitly excluding testing
-    past_events = schedule[(schedule['EventDate'] <= now) & (~schedule.is_testing())]
+    # Filter for past races, explicitly excluding testing sessions
+    past_events = schedule[(schedule['EventDate'] <= now) & (~schedule['EventFormat'].str.contains('testing', case=False, na=False))]
     
     history_data = []
     
@@ -35,7 +39,7 @@ def get_season_points():
                 'Steven': sum(points_map.get(d, 0) for d in steven_lineup),
                 'Vanessa': sum(points_map.get(d, 0) for d in vanessa_lineup)
             })
-        except:
+        except Exception:
             continue
             
     return pd.DataFrame(history_data)
@@ -54,6 +58,6 @@ if not df.empty:
     # Plotting
     fig = px.line(df, x='Race', y=['Steven Total', 'Vanessa Total'], 
                   markers=True, title="Cumulative Season Points")
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("No race data available yet.")
