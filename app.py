@@ -138,10 +138,10 @@ with tab1:
     df_chart = pd.DataFrame(history_data)
     
     if not df_chart.empty:
-        df_chart['Steven Total'] = df_chart['Steven'].cumsum()
-        df_chart['Vanessa Total'] = df_chart['Vanessa'].cumsum()
-        fig = px.line(df_chart, x='Race', y=['Steven Total', 'Vanessa Total'], markers=True, title="Cumulative Season Points",
-                      color_discrete_map={"Steven Total": "red", "Vanessa Total": "blue"})
+        df_chart['Steven's Season Points'] = df_chart['Steven'].cumsum()
+        df_chart['Vanessa's Season Points'] = df_chart['Vanessa'].cumsum()
+        fig = px.line(df_chart, x='Race', y=['Steven's Season Points', 'Vanessa's Season Points'], markers=True, title="Cumulative Season Points",
+                      color_discrete_map={"Steven's Season Points": "red", "Vanessa's Season Points": "blue"})
         fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
     else: 
@@ -166,3 +166,4 @@ with tab3:
     st.subheader("Vanessa's Breakdown")
     vanessa_html = generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions)
     st.markdown(vanessa_html, unsafe_allow_html=True)
+
