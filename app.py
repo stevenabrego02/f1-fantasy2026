@@ -11,7 +11,7 @@ st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 driver_info = {
     "HAM": {"name": "Lewis Hamilton", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LEWHAM01_Lewis_Hamilton/lewham01.png"},
     "LEC": {"name": "Charles Leclerc", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png"},
-    "RUS": {"name": "George Russell", "img": "https://www.formula1.com/content/dam/fom-website/drivers/G/GEORUS01_George_Russell/georus01.png"},
+    "RUS": {"name": "George Russell", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/mercedes/georus01/2026mercedesgeorus01right.webp"},
     "NOR": {"name": "Lando Norris", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LANNOR01_Lando_Norris/lannor01.png"},
     "PIA": {"name": "Oscar Piastri", "img": "https://www.formula1.com/content/dam/fom-website/drivers/O/OSCPIA01_Oscar_Piastri/oscpia01.png"},
     "VER": {"name": "Max Verstappen", "img": "https://www.formula1.com/content/dam/fom-website/drivers/M/MAXVER01_Max_Verstappen/maxver01.png"},
@@ -84,4 +84,5 @@ with tab2:
             row_col1, row_col2 = st.columns([0.5, 4])
             row_col1.image(d["img"], width=50)
             row_col2.write(f"**{d['name']}**")
+
 
