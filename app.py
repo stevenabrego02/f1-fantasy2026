@@ -7,38 +7,24 @@ import plotly.express as px
 st.set_page_config(page_title="2026 F1 Fantasy Battle", layout="wide")
 st.title("🏎️ 2026 F1 Fantasy: Live Tracker")
 
-# --- Custom CSS for HTML Tables ---
+# --- Custom CSS ---
 st.markdown("""
 <style>
     .f1-table-container { overflow-x: auto; max-width: 100%; margin-bottom: 2rem; }
     .f1-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; }
     .f1-table td { border: 1px solid #444; padding: 8px; text-align: center; white-space: nowrap; }
-    
-    /* Vertical Column Headers - Updated for Visibility */
     .f1-table th:not(:first-child) {
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        height: 250px; 
-        white-space: normal;
-        vertical-align: middle;
-        padding: 10px 5px;
-        line-height: 1.2;
+        writing-mode: vertical-rl; transform: rotate(180deg); height: 250px; 
+        white-space: normal; vertical-align: middle; padding: 10px 5px; line-height: 1.2;
     }
-
     .f1-table td:first-child, .f1-table th:first-child { 
-        text-align: left; position: sticky; left: 0; 
-        background-color: #0e1117; z-index: 2; min-width: 180px; 
+        text-align: left; position: sticky; left: 0; background-color: #0e1117; z-index: 2; min-width: 180px; 
     }
-    
     .f1-table tr:last-child { font-weight: bold; background-color: #1e2530; }
-
-    @media (max-width: 600px) {
-        .f1-table th:not(:first-child) { height: 150px; font-size: 10px; }
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Driver Data ---
+# --- Driver Data & Lineups ---
 driver_info = {
     "HAM": {"name": "Lewis Hamilton", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LEWHAM01_Lewis_Hamilton/lewham01.png"},
     "LEC": {"name": "Charles Leclerc", "img": "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png"},
@@ -57,23 +43,18 @@ driver_info = {
     "LAW": {"name": "Liam Lawson", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LIALAW01_Liam_Lawson/lialaw01.png"},
     "HUL": {"name": "Nico Hulkenberg", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/audi/nichul01/2026audinichul01right.webp"},
 }
-
-# --- Lineups ---
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
 vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "HUL"]
 
-# --- Data Fetching (Updated to 60s for near-instant updates) ---
 @st.cache_data(ttl=60)
 def fetch_season_data():
     schedule = fastf1.get_event_schedule(2026)
     events = schedule[~schedule['EventFormat'].str.contains('testing', case=False, na=False)]
     points_dict, all_sessions = {}, []
     now = pd.Timestamp.now().tz_localize(None)
-    
     for _, event in events.iterrows():
         event_name = event['EventName']
         is_sprint = str(event['EventFormat']).lower() in ['sprint', 'sprint_qualifying', 'sprint_shootout']
-        
         if is_sprint:
             sprint_name = f"{event_name} (Sprint)"
             all_sessions.append(sprint_name)
@@ -84,7 +65,6 @@ def fetch_season_data():
                     res = s.results[['Abbreviation', 'Points']]
                     points_dict[sprint_name] = dict(zip(res['Abbreviation'], res['Points']))
                 except: pass
-        
         race_name = f"{event_name} (Race)"
         all_sessions.append(race_name)
         if event['EventDate'] <= now:
@@ -94,16 +74,15 @@ def fetch_season_data():
                 res = s.results[['Abbreviation', 'Points']]
                 points_dict[race_name] = dict(zip(res['Abbreviation'], res['Points']))
             except: pass
-            
     all_sessions.append("Total")
     return all_sessions, points_dict
 
-def generate_html_spreadsheet(lineup, points_dict, all_sessions):
+def generate_html_spreadsheet(owner_name, lineup, points_dict, all_sessions):
     rows = []
     for code in lineup:
         d = driver_info.get(code, {"name": code, "img": ""})
         driver_cell = f"<div style='display:flex; align-items:center;'><img src='{d['img']}' width='45' style='margin-right:12px; border-radius:50%;'> <span>{d['name']}</span></div>"
-        row = {"Driver": driver_cell}
+        row = {owner_name: driver_cell}
         total_pts = 0
         for session in all_sessions[:-1]:
             pts = points_dict.get(session, {}).get(code, 0)
@@ -111,15 +90,13 @@ def generate_html_spreadsheet(lineup, points_dict, all_sessions):
             total_pts += pts
         row["Total"] = total_pts
         rows.append(row)
-        
     df = pd.DataFrame(rows)
-    total_row = {"Driver": "<b>Total</b>"}
+    total_row = {owner_name: "<b>Total</b>"}
     for col in df.columns[1:]:
         total_row[col] = df[col].sum()
     df = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
     return f"<div class='f1-table-container'>{df.to_html(escape=False, index=False, classes='f1-table')}</div>"
 
-# --- Main App ---
 all_sessions, points_dict = fetch_season_data()
 tab1, tab2, tab3 = st.tabs(["📊 Live Standings", "👤 Team Lineups", "📑 Spreadsheet View"])
 
@@ -133,19 +110,8 @@ with tab1:
     if not df_chart.empty:
         df_chart["Steven's Season Points"] = df_chart['Steven'].cumsum()
         df_chart["Vanessa's Season Points"] = df_chart['Vanessa'].cumsum()
-        
-        # --- Updated Plot Color ---
-        fig = px.line(
-            df_chart, 
-            x='Race', 
-            y=["Steven's Season Points", "Vanessa's Season Points"], 
-            markers=True, 
-            title="Cumulative Season Points",
-            color_discrete_map={
-                "Steven's Season Points": "red",
-                "Vanessa's Season Points": "blue"
-            }
-        )
+        fig = px.line(df_chart, x='Race', y=["Steven's Season Points", "Vanessa's Season Points"], markers=True, 
+                      title="Cumulative Season Points", color_discrete_map={"Steven's Season Points": "red", "Vanessa's Season Points": "blue"})
         fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -161,6 +127,7 @@ with tab2:
                 c2.markdown(f"**{d['name']}**")
 
 with tab3:
-    st.markdown(generate_html_spreadsheet(steven_lineup, points_dict, all_sessions), unsafe_allow_html=True)
-    st.markdown(generate_html_spreadsheet(vanessa_lineup, points_dict, all_sessions), unsafe_allow_html=True)
-
+    st.subheader("Steven's Breakdown")
+    st.markdown(generate_html_spreadsheet("Steven", steven_lineup, points_dict, all_sessions), unsafe_allow_html=True)
+    st.subheader("Vanessa's Breakdown")
+    st.markdown(generate_html_spreadsheet("Vanessa", vanessa_lineup, points_dict, all_sessions), unsafe_allow_html=True)
