@@ -76,16 +76,17 @@ with tab2:
         for code in steven_lineup:
             d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
             # Adjusting the ratio to [0.3, 4] keeps the image compact
-            row_col1, row_col2 = st.columns([0.3, 4]) 
-            row_col1.image(d["img"], width=35) # Reduced from 50 to 35
+            row_col1, row_col2 = st.columns([0.5, 5]) 
+            row_col1.image(d["img"], width=50) # Reduced from 50 to 35
             row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
             
     with col2:
         st.subheader("Vanessa's Drivers")
         for code in vanessa_lineup:
             d = driver_info.get(code, {"name": code, "img": "https://via.placeholder.com/35"})
-            row_col1, row_col2 = st.columns([0.3, 4])
-            row_col1.image(d["img"], width=35) # Reduced from 50 to 35
+            row_col1, row_col2 = st.columns([0.5, 5])
+            row_col1.image(d["img"], width=50) # Reduced from 50 to 35
             row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
+
 
 
