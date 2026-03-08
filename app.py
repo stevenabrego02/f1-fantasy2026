@@ -133,7 +133,19 @@ with tab1:
     if not df_chart.empty:
         df_chart["Steven's Season Points"] = df_chart['Steven'].cumsum()
         df_chart["Vanessa's Season Points"] = df_chart['Vanessa'].cumsum()
-        fig = px.line(df_chart, x='Race', y=["Steven's Season Points", "Vanessa's Season Points"], markers=True, title="Cumulative Season Points")
+        
+        # --- Updated Plot Color ---
+        fig = px.line(
+            df_chart, 
+            x='Race', 
+            y=["Steven's Season Points", "Vanessa's Season Points"], 
+            markers=True, 
+            title="Cumulative Season Points",
+            color_discrete_map={
+                "Steven's Season Points": "red",
+                "Vanessa's Season Points": "blue"
+            }
+        )
         fig.update_yaxes(rangemode="tozero")
         st.plotly_chart(fig, use_container_width=True)
 
