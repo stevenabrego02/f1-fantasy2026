@@ -24,11 +24,12 @@ driver_info = {
     "ANT": {"name": "Kimi Antonelli", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/mercedes/andant01/2026mercedesandant01right.webp"},
     "ALB": {"name": "Alex Albon", "img": "https://www.formula1.com/content/dam/fom-website/drivers/A/ALEALB01_Alexander_Albon/alealb01.png"},
     "LAW": {"name": "Liam Lawson", "img": "https://www.formula1.com/content/dam/fom-website/drivers/L/LIALAW01_Liam_Lawson/lialaw01.png"},
+    "HUL": {"name": "Nico Hulkenberg", "img": "https://media.formula1.com/image/upload/c_fill,w_80,h_80,g_north/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000000/common/f1/2026/audi/nichul01/2026audinichul01right.webp"},
 }
 
 # --- Define Your Lineups ---
 steven_lineup = ["HAM", "LEC", "RUS", "LIN", "BOR", "HAD", "SAI", "GAS"]
-vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "NOR"]
+vanessa_lineup = ["NOR", "PIA", "VER", "BEA", "ANT", "ALB", "LAW", "HUL"]
 
 # --- Function to Get All Points ---
 @st.cache_data(ttl=3600)
@@ -87,6 +88,7 @@ with tab2:
             row_col1, row_col2 = st.columns([0.5, 5])
             row_col1.image(d["img"], width=50) # Reduced from 50 to 35
             row_col2.markdown(f"<small>{d['name']}</small>", unsafe_allow_html=True)
+
 
 
 
